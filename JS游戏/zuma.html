@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8">
+		<title>模仿游戏打豆豆</title>
+		<style>
+			#myCanvas {
+				display: block;
+				margin: 0 auto;
+				background: #fff;
+				box-shadow: 0 0 20px gainsboro;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="myCanvas" width="800" height="800">
+			您的浏览器不支持canvas，请您及时更新!
+		</canvas>
+	</body>
+	<script>
+	//根据三角数的函数(正余弦)公式进行计算
+		window.onload = function() {
+			var mc = document.querySelector('#myCanvas'); //画布
+			var ctx = mc.getContext('2d'); //画笔
+			var score = 0;//分数初始化
+			
+			//开始页面
+			function startPage(){
+				ctx.beginPath();
+				ctx.font = '60px Arial';
+				ctx.fillText('开始打豆豆',200,400);
+				
+			}
+			startPage();
+			
+			//设置图形
+			var image = new Image();
+			image.src = 'img/002.png';
+			image.onload = function() {
+				    var time;
+				    function time11(){
+					//重新绘制实现动画效果，每次先清空上次一次绘画的，然后再画下一次绘画的
+					 time = setInterval(function() {
+						ctx.clearRect(0, 0, mc.width, mc.height);//清除画布(不然会多个重在一起)
+						//外大圆
+						ctx.beginPath();//开辟一条新的路径
+						// 外面的大圆圆心坐标为400,400，半径为250，从-90度到180度，顺时针。，内小圆的圆心坐标为350,400，半径为200，从180度到0度，瞬时针。曲线终点有一个小圆，圆心坐标为550,400，半径为30。三个圆都为空心圆。
+						ctx.arc(400, 400, 250, -90 * Math.PI / 180, 180 * Math.PI / 180, false);
+						ctx.stroke();//结束
+						//内小圆
+						ctx.beginPath();
+						ctx.arc(350, 400, 200, 180 * Math.PI / 180, 0, false);
+						ctx.stroke();
+						//末尾圆
+						ctx.beginPath();
+						ctx.arc(550, 400, 30, 0, 360 * Math.PI / 180, false);
+						ctx.stroke();
+						//起始圆围绕半圆做圆周运动，把每一个小圆的横纵坐标赋给新圆坐标，
+						// 达到到新位置1000/60ms，每350ms从原起点生成一个新的ball的效果
+						for(var i = 0; i < ball.length; i++) {
+							ctx.beginPath();
+							ctx.moveTo(400, 150);
+							ctx.arc(ball[i].x, ball[i].y, 30, 0, 360 * Math.PI / 180, false);
+							ctx.fill();
+						}
+
+						//让图片顺在中心转起来
+						//绘制分数
+						function drawScore() {
+							ctx.beginPath();
+							ctx.font = '20px Arial';
+							// ctx.fillStyle = 'red';
+							ctx.fillText('分数:' + score, 20, 20);
+						}
+						drawScore();
+						//画布的宽度 - 
+						var picX = (mc.width - image.offsetWidth) / 2;
+						var picY = (mc.height - image.offsetHeight) / 2;
+						ctx.save(); //为了不受定时器影响，保存起来
+						//ranslate() 方法重新映射画布上的 (0,0) 位置。
+						ctx.translate(picX, picY);// x 添加到水平坐标（x）上的值 y	添加到垂直坐标（y）上的值
+						ctx.rotate(-iRotate); //iRotate 参数是为了控制让图片跟着鼠标旋转 
+						ctx.translate(-30, -30); //为了让图片沿着图片中心转动
+						ctx.drawImage(image, 0, 0);
+						//               ctx.drawImage(image,(mc.width-image.offsetWidth)/2,(mc.height-image.offsetHeight)/2)
+						ctx.restore();
+						//子弹
+						for(var i = 0; i < Buttle.length; i++) {
+							ctx.save(); //保存当前状态
+							ctx.beginPath();
+							ctx.fillStyle = 'red';
+							ctx.moveTo(Buttle[i].x, Buttle[i].y);
+							ctx.arc(Buttle[i].x, Buttle[i].y, 30, 0, 360 * Math.PI / 180, false);
+							ctx.fill();
+							ctx.restore();//恢复
+						}
+					}, 17);
+					}
+                 var timer1;
+                function time12(){
+				//循环每一个ball，改变每一个原心的坐标，
+				timer1 =	 setInterval(function() {
+						for(var i = 0; i < ball.length; i++) {
+							ball[i].num++; // 圆角度由0-360
+							if(ball[i].num == 270) { // 如果角度变为270度，改变ball的起始点坐标，就是改变它的轨迹。
+								ball[i].r = 200;//半径
+								ball[i].X = 350;//小圆x轴坐标
+								ball[i].Y = 200;//小圆y轴坐标
+							} else if(ball[i].num == 450) {//当ball[i].num=450度时，也就是走到末尾圆，代表游戏结束。
+								alert("游戏结束");
+                    				window.location.reload();
+							}
+							//sin() 方法可返回一个数字的正弦。
+							ball[i].x = Math.sin(ball[i].num * Math.PI / 180) * ball[i].r + ball[i].X; //小圆横坐标
+							ball[i].y = ball[i].r - Math.cos(ball[i].num * Math.PI / 180) * ball[i].r + ball[i].Y; //小圆的纵坐标
+						}
+						//图片吐子弹的路径，获得吐到子弹终点的坐标
+						for(var i = 0; i < Buttle.length; i++) {
+							Buttle[i].x = Buttle[i].x + Buttle[i].iSpeedX; //子弹终点横坐标
+							Buttle[i].y = Buttle[i].y + Buttle[i].iSpeedY; //子弹终点纵坐标
+						}
+						//碰撞检测(碰撞检测后让发射的子弹和轨迹上的小圆消失)
+						for(var i = 0; i < Buttle.length; i++) {
+							for(var j = 0; j < ball.length; j++) {
+								if(pz(Buttle[i].x, Buttle[i].y, ball[j].x, ball[j].y)) {
+									score += 5;
+									Buttle.splice(i, 1);
+									ball.splice(j, 1);
+									break;
+								}
+							}
+						}
+					}, 17);
+					}
+					//开定时器，每350ms添加一个ball
+					var ball = [];
+					var times;
+					function time13(){
+					 times = setInterval(function() {
+						ball.push({
+							x: 400, //小圆起始点横坐标
+							y: 150, //小圆起始点纵坐标
+							r: 250, //大圆的半径
+							num: 0, //小圆转过的角度
+							//必须新建一个小圆的横纵坐标，否则小圆会飞出去。
+							X: 400, //小圆起始点横坐标
+							Y: 150 //小圆起始点纵坐标
+						});
+					}, 400);
+					}
+
+					//让图片跟着鼠标转,图片纵坐标与鼠标与图片中心的距离的夹角
+					//图片旋转的角度
+					var iRotate = 0;//旋转初始角度
+					function time2(){
+					mc.onmousemove = function(e) {//鼠标移动事件
+						var e = event || window.event;
+						// 当前窗口 - 画布距离浏览器左边的距离 - 画布的宽度 - 照片距离浏览器的宽度
+						var a = e.clientX - mc.offsetLeft - (mc.width - image.offsetWidth) / 2;
+						var b = e.clientY - mc.offsetTop - (mc.height - image.offsetHeight) / 2;
+						//旋转的角度 cos() 方法可返回一个数字的余弦值。
+						iRotate = Math.cos(a / b);
+					};
+					}
+					//让图片吐子弹
+					var Buttle = [];
+					function time3(){
+					mc.onmousedown = function(e) {//鼠标按键按下时的事件
+						var e = event || window.event;
+						var a = e.clientX - mc.offsetLeft - (mc.width - image.offsetWidth) / 2;
+						var b = e.clientY - mc.offsetTop - (mc.height - image.offsetHeight) / 2;
+						var iSpeed = 5;
+						var c = Math.sqrt(a * a + b * b); //鼠标距离图片中心的距离
+						//横轴分得到的速度
+						var iSpeedX = iSpeed * a / c;
+						//纵轴分得到的速度
+						var iSpeedY = iSpeed * b / c; 
+						Buttle.push({
+							x: (mc.width - image.offsetWidth) / 2,
+							y: (mc.height - image.offsetHeight) / 2,
+							iSpeedX: iSpeedX,
+							iSpeedY: iSpeedY
+						});
+					}
+				}
+				
+			//构建碰撞检测函数 （子弹和轨迹上的小圆）
+			function pz(x1, y1, x2, y2) {
+				var a = x1 - x2;
+				var b = y1 - y2;
+				//sqrt() 方法可返回一个数的平方根。
+				var c = Math.sqrt(a * a + b * b);
+				if(c < 60) { //如果两圆心的距离小于60（球和子弹的圆心距加起来小于60，刚刚碰撞上）
+					return true;
+				} else {
+					return false;
+				}
+			}
+			var flag = 0;//开关
+			//开始页面的点击事件
+			mc.onclick = function(){
+				time3();	
+				if(flag == 0){
+				time11();
+				time12();
+				time13();
+				time2();							
+				pz();
+				}
+				flag = 1;
+			}
+		}
+	}
+	</script>
+</html>
