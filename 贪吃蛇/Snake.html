@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+	<meta charset="UTF-8">
+	<title>贪吃蛇</title>
+	<style>	
+	body{
+	/*	width: 100%;
+	height: 100%;*/
+	background: url(img/4.jpg)no-repeat;
+}
+#start,#refresh,#start1{
+	border: 1px solid skyblue;
+	background: skyblue;
+	color: white;
+	width: 60px;
+	height: 40px;
+	border-radius: 5px;
+	margin-left: 15px;
+	/*font-size: 1rem;*/
+	margin-bottom: 10px;
+}
+#wrap1{
+	text-align: center;
+}
+
+</style>
+</head>
+<body>
+</body>
+<div id="wrap1">
+	<!-- 开始按钮 -->
+	<input id="start" type="button" name="name" value="开始">
+	<input id="start1" type="button" name="name" value="重新开始">
+	<!-- 刷新-->
+	<input id="refresh" type="button" name="name" value="刷新">
+	<div id="score">分数:0</div>
+	<div id="wrap"></div>
+</div>
+<script type="text/javascript" src="JQuery/jquery-3.2.1.js"></script>
+<script>
+	var start = document.getElementById('start');
+	var start1 = document.getElementById('start1');
+	var refresh = document.getElementById('refresh');
+	var pause = document.getElementById('pause');
+	// var score2 = $('score2');
+	//获取wrap元素
+	var wrap = $('#wrap');//外层的盒子
+	var scoreDiv = $('#score');//分数
+	rowNum = 15;//行
+	colNum = 15;//列
+	itemWidth = 42;//单元格的宽度
+	itemHeight = 42;//单元格的高度
+		var arr = [];//行
+		var arr1 = [];//列
+		
+		//wrap的样式
+		$('#wrap').css({
+			'width': '663px',
+			'font-size':'0',
+			'margin':'0 auto'		
+		});
+		$('#score').css({
+			'font-size':'2rem',
+			'fontWeight':'bloder',
+			'display':'inline-block',
+			'text-align':'center'
+		});	
+		// $('#score1').css({
+		// 	'width':'500px',
+		// 	'font-size':'1.2rem',
+		// 	'fontWeight':'bloder',
+		// 	'display':'inline-block',
+		// 	'margin':'5px 60%'
+		// });	
+		
+		//利用循环创建多个div
+		// 外层循环代表行(外层循环)
+		
+			for(var i = 0; i < rowNum ; i++) {
+			arr1 = [];//清空列(否则会累加);
+			//内层循环代表列(内层循环)
+			for(var j = 0;j < colNum; j++){
+				//创建新的div
+				var newDiv = $('<div></div>'); 
+				//给wrap添加元素
+				wrap.append(newDiv);
+				//给arr1(列)的数组添加元素
+				arr1.push(newDiv);
+				//创建的新的Div的样式
+				newDiv.css({
+					'width': itemWidth + 'px',
+					'height': itemHeight + 'px',
+					'border': '1px solid black',
+					'display': 'inline-block',
+					'backgroundColor': 'beige'
+				});
+				//wrap宽的样式
+				wrap.css('width',(itemWidth + 2) * colNum + 'px');
+			}
+			//行的数组添加元素
+			arr.push(arr1);	
+		}
+
+		console.log(arr);
+		
+
+		start.onclick = function(){
+		var snake = [];//蛇的空数组
+		var score = 0;//分数
+		//创建蛇
+		function snakeFn(){
+			flag = 1;
+			for(var j = 0; j < 3; j++){
+				$(arr[0][j]).css('backgroundColor' ,'rgb(180, 225, 252) ');
+				snake.push(arr[0][j]);
+			}
+			flag = 0;
+		}	
+		snakeFn();
+		console.log(snake);
+		createEgg();
+		// 定义变量来控制蛇
+		var row = 0;//行  蛇头的起始位置偏移量
+		var col = 2;//列
+		// 记录蛇移动的方向,初始为向右
+		var initial = 'right';
+		var evade = 1;//规避因按键的速度超过计时器的时间而产生的bug(就是按键太快蛇还没有过去而按了另一个方向地 键从而使蛇自己撞自己)
+		// 添加键盘事件 方向键来改变蛇的移动方向
+		document.onkeydown = function(){
+			var e = window.event || event;
+			// 判断键如果冲突时的判断
+			if (evade == 0) {
+				return;
+			}
+			// 假设蛇向右移动,点方向键左,右键都不需要做出响应
+			if (initial == 'right' && e.keyCode == 37) {
+				// 终止事件执行
+				return;
+			}
+			if (initial == 'left' && e.keyCode == 39) {
+				return;
+			}
+			if (initial == 'bottom' && e.keyCode == 38) {
+				return;   
+			}
+			if (initial == 'top' && e.keyCode == 40) {
+				return;
+			}
+			evade = 0;
+			// 我们通过keyCode确定蛇要移动的方向
+			switch(e.keyCode){
+					case 37://左
+					initial = 'left';
+					break;
+					case 38://上
+					initial = 'top';
+					break;
+					case 39://右
+					initial = 'right';
+					break;
+					case 40://下
+					initial = 'bottom';
+					break;
+				}
+
+			}
+			var defaultTimer = setInterval(function(){
+				switch(initial){
+					// 根据上面设置的方向来设置蛇头的位置
+					case 'left'://左
+					col--;
+					break;
+					case 'top'://上
+					row--;
+					break;
+					case 'right'://右
+					col++;
+					break;
+					case 'bottom'://下
+					row++;
+					break;
+				}
+				evade = 1;
+				// 判断是否游戏结束
+				if (row < 0|| col < 0 || row > rowNum - 1 || col > colNum-1 || arr[row][col].css('backgroundColor') =='rgb(180, 225, 252)') {
+					alert('游戏结束');
+					// 结束蛇移动的定时器
+					clearInterval(defaultTimer);
+					// 终止键盘事件;
+					return;
+				}
+				//记录最好成绩
+		// 		for(var i = 0; i < arr1.length;i++){
+		// 		max = max > arr1[i] ? max : arr1[i];
+		// 		score1.innerText = max;
+		// }
+				// score1.innerText = max;
+				// 判断蛇头移动的位置是否有蛋
+				if(row == Fn && col == Fn1) {
+					arr[row][col].css('backgroundColor','rgb(180, 225, 252)');//蛇的颜色
+					snake.push(arr[row][col]);	// 加入蛇身
+					createEgg();// 随机产生一个新的蛋
+					//记录分数
+					score++;
+					// 更新当前的分数
+					scoreDiv.text('分数:'+score);
+				}else{
+					$(snake[0]).css('backgroundColor','beige');//div的颜色
+					snake.shift();// 将蛇尾div从数组中移除
+					$(arr[row][col]).css('background','rgb(180, 225, 252)');
+					snake.push(arr[row][col]);
+				}
+				
+			},260);
+	//随机函数
+	function randomNum(x,y){
+		return Math.round(Math.random() * (y - x) + x);
+	}
+	//食物
+	var Fn, Fn1;
+	function createEgg(){
+		Fn = randomNum(0,14),Fn1 = randomNum(0,14);
+		console.log(arr[Fn][Fn1].css('backgroundColor'));
+		if(arr[Fn][Fn1].css('backgroundColor')=='rgb(180, 225, 252)') {
+			createEgg();//调用函数
+		}else{
+			arr[Fn][Fn1].css('backgroundColor','paleturquoise');//食物的颜色
+		}
+	}
+	// 开始
+	// function start(){
+	// 	$('#start').click (function(){
+	// 		snake = [];
+	// 		score = 0;
+	// 		snakeFn();
+	// 		createEgg();
+	// 	});
+	// }
+	// 重新开始
+	start1.onclick = function(){
+		for(var j = 0; j < snake.length; j++){
+			$(snake[j]).css('backgroundColor' ,'beige');
+		}
+		clearInterval(defaultTimer);
+		snake =[];
+		console.log(snake);
+		arr[Fn][Fn1].css('backgroundColor','beige');
+		scoreDiv.text('分数: 0');
+		score = 0;
+	} 
+	// 添加刷新按钮
+	refresh.onclick = function() {
+		window.location.reload();
+	};
+	//记录最好的成绩
+	// var score1 = document.getElementById('score1');
+	// var arr1 = [];
+	// var max;
+}
+</script>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
